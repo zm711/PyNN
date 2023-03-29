@@ -452,7 +452,7 @@ calculates distance on the surface of a torus of circumference 500 µm
 Accessing weights and delays
 ----------------------------
 
-The :meth:`Projection.get` method allows the retrieval of connection attributes,
+The :meth:`Projection.get` method allows for the retrieval of connection attributes,
 such as weights and delays. Two formats are available. ``'list'`` returns a list
 of length equal to the number of connections in the projection, ``'array'``
 returns a 2D weight array (with NaN for non-existent connections):
