@@ -131,7 +131,7 @@ For more on spatial structure, see :doc:`space`.
 Using multiple parameter types
 ------------------------------
 
-It is perfectly possible to use multiple different types of parameter value at
+It is perfectly possible to use multiple different types of parameter values at
 the same time:
 
 .. doctest::
