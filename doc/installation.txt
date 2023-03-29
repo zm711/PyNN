@@ -104,7 +104,7 @@ Now you can compile and install NEURON as a Python package::
     $ cd src/nrnpython
     $ python setup.py install
 
-Now test everything worked::
+Now test that everything worked::
 
     $ python
     >>> import neuron
