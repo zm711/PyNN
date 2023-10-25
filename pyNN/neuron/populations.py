@@ -75,12 +75,10 @@ class PopulationMixin(object):
                     else:
                         parameter_space = ParameterSpace({})
                     for component_label in names_by_component:
-                        parameter_space.add_child(
-                            component_label,
-                            _get_component_parameters(
+                        parameter_space[component_label] = _get_component_parameters(
                                 self.celltype.post_synaptic_receptors[component_label],
                                 names_by_component[component_label],
-                                component_label))
+                                component_label)
             else:
                 parameter_space = _get_component_parameters(self.celltype, names)
         else:
@@ -111,13 +109,23 @@ class PopulationMixin(object):
                 parameter_dict[name] = simplify(val)
         return ParameterSpace(parameter_dict, shape=(self.local_size,))
 
-    def _set_initial_value_array(self, variable, initial_values):
+    def _set_initial_value_array(self, variable_name, initial_values):
+        # todo: support different initial values in different segments
         if hasattr(self.celltype, "variable_map"):
-            variable = self.celltype.variable_map[variable]
+            variable_name = self.celltype.variable_map[variable_name]
+
+        if "." in variable_name:
+            mech_name, state_name = variable_name.split(".")
+        else:
+            mech_name, state_name = None, variable_name
+
         if initial_values.is_homogeneous:
             value = initial_values.evaluate(simplify=True)
             for cell in self:  # only on local node
-                setattr(cell._cell, "%s_init" % variable, value)
+                if mech_name:
+                    cell._cell.initial_values[mech_name][state_name] = value
+                else:
+                    cell._cell.initial_values[state_name] = value
         else:
             if (
                 isinstance(initial_values.base_value, RandomDistribution)
@@ -127,7 +135,10 @@ class PopulationMixin(object):
             else:
                 local_values = initial_values[self._mask_local]
             for cell, value in zip(self, local_values):
-                setattr(cell._cell, "%s_init" % variable, value)
+                if mech_name:
+                    cell._cell.initial_values[mech_name][state_name] = value
+                else:
+                    cell._cell.initial_values[state_name] = value
 
 
 class Assembly(common.Assembly):
@@ -180,7 +191,7 @@ class Population(common.Population, PopulationMixin):
         else:
             parameter_space = self.celltype.parameter_space
         parameter_space.shape = (self.size,)
-        parameter_space.evaluate(mask=None)
+        parameter_space.evaluate(mask=None, simplify=True)
 
         if hasattr(self.celltype, "post_synaptic_receptors"):
             psrs = {name: psr.model
